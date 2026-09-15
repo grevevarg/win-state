@@ -1,0 +1,262 @@
+---
+- name: Windows 11 Privacy Hardening and Optimizations
+  hosts: localhost
+  connection: winrm
+  gather_facts: false
+  vars:
+    ansible_host: "127.0.0.1"
+    ansible_port: 5985
+    ansible_winrm_transport: ntlm
+    ansible_winrm_server_cert_validation: ignore
+    ansible_become_method: runas
+    ansible_become_user: "{{ ansible_user }}"
+    ansible_become_password: "{{ ansible_password }}"
+  tasks:
+
+    # ============================================
+    # REMOVE TELEMETRY & OPTIONAL FEATURES
+    # ============================================
+
+    - name: Disable Cortana
+      ansible.windows.win_regedit:
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search
+        name: AllowCortana
+        data: 0
+        type: dword
+      become: true
+
+    - name: Disable Activity History
+      ansible.windows.win_regedit:
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\System
+        name: PublishUserActivities
+        data: 0
+        type: dword
+      become: true
+
+    - name: Disable App Suggestions
+      ansible.windows.win_regedit:
+        path: HKCU:\Software\Microsoft\Windows\CloudContent
+        name: CloudContentConfiguration
+        data: 2
+        type: dword
+      become: false
+
+    - name: Disable Tailored Experiences
+      ansible.windows.win_regedit:
+        path: HKCU:\Software\Microsoft\Windows\CurrentVersion\Privacy
+        name: TailoredExperiencesWithDiagnosticDataEnabled
+        data: 0
+        type: dword
+      become: false
+
+    - name: Disable Advertising ID
+      ansible.windows.win_regedit:
+        path: HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo
+        name: Enabled
+        data: 0
+        type: dword
+      become: false
+
+    - name: Disable Online Tips
+      ansible.windows.win_regedit:
+        path: HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager
+        name: SubscribedContent-310093Enabled
+        data: 0
+        type: dword
+      become: false
+
+    - name: Set Diagnostic Data to Basic
+      ansible.windows.win_regedit:
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection
+        name: AllowDiagnosticData
+        data: 1
+        type: dword
+      become: true
+
+    - name: Disable Connected User Experiences
+      ansible.windows.win_regedit:
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\System
+        name: EnableActivityFeed
+        data: 0
+        type: dword
+      become: true
+
+    - name: Disable Feedback Notifications
+      ansible.windows.win_regedit:
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection
+        name: DoNotShowFeedbackNotifications
+        data: 1
+        type: dword
+      become: true
+
+    # ============================================
+    # DISABLE P2P UPDATE SHARING
+    # ============================================
+
+    - name: Disable Delivery Optimization (P2P updates)
+      ansible.windows.win_regedit:
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization
+        name: DODownloadMode
+        data: 0
+        type: dword
+      become: true
+
+    # ============================================
+    # PRIVACY HARDENING
+    # ============================================
+
+# mr llm took privacy extra seriously, sadly can't keep them active
+
+#    - name: Disable Camera Access
+#      ansible.windows.win_regedit:
+#        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Camera
+#        name: AllowCamera
+#        data: 0
+#        type: dword
+
+#    - name: Disable Microphone Access
+#      ansible.windows.win_regedit:
+#        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Microphone
+#        name: AllowMicrophone
+#        data: 0
+#        type: dword
+
+    - name: Disable Location Tracking
+      ansible.windows.win_regedit:
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors
+        name: DisableLocation
+        data: 1
+        type: dword
+      become: true
+
+    - name: Disable Web Search in Windows Search
+      ansible.windows.win_regedit:
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search
+        name: ConnectedSearchUseWeb
+        data: 0
+        type: dword
+      become: true
+
+    - name: Disable Suggested Content
+      ansible.windows.win_regedit:
+        path: HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager
+        name: ContentDeliveryManagerEnabled
+        data: 0
+        type: dword
+      become: false
+
+    # ============================================
+    # PERFORMANCE OPTIMIZATIONS
+    # ============================================
+
+    - name: Disable Visual Effects (Performance mode)
+      ansible.windows.win_regedit:
+        path: HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects
+        name: VisualFXSetting
+        data: 2
+        type: dword
+      become: false
+
+    - name: Disable Transparency Effects
+      ansible.windows.win_regedit:
+        path: HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize
+        name: EnableTransparency
+        data: 0
+        type: dword
+      become: false
+
+    - name: Reduce Animation Duration
+      ansible.windows.win_regedit:
+        path: HKCU:\Control Panel\Desktop
+        name: MenuShowDelay
+        data: 100
+        type: string
+      become: false
+
+    - name: Disable Window Animations
+      ansible.windows.win_regedit:
+        path: HKCU:\Control Panel\Desktop\WindowMetrics
+        name: MinAnimate
+        data: 0
+        type: dword
+      become: false
+
+    - name: Disable Aero Shake
+      ansible.windows.win_regedit:
+        path: HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+        name: DisallowShaking
+        data: 1
+        type: dword
+      become: false
+
+#    - name: Disable Fast Startup (unsure)
+#      ansible.windows.win_regedit:
+#        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power
+#        name: HibernationFile
+#        data: 0
+#        type: dword
+
+    - name: Disable Prefetch
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters
+        name: EnablePrefetcher
+        data: 0
+        type: dword
+      become: true
+
+    - name: Disable SuperFetch (SysMain Service)
+      ansible.windows.win_service:
+        name: SysMain
+        state: stopped
+        start_mode: disabled
+      become: true
+
+    - name: Disable Windows Search Service
+      ansible.windows.win_service:
+        name: WSearch
+        state: stopped
+        start_mode: disabled
+      become: true
+
+    - name: Disable BITS Service
+      ansible.windows.win_service:
+        name: BITS
+        state: stopped
+        start_mode: disabled
+      become: true
+
+    # ============================================
+    # SECURITY ENHANCEMENTS
+    # ============================================
+
+    - name: Enable Windows Defender Real-time Protection
+      ansible.windows.win_regedit:
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection
+        name: DisableRealtimeMonitoring
+        data: 0
+        type: dword
+      become: true
+
+    - name: Enable UAC
+      ansible.windows.win_regedit:
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+        name: EnableLUA
+        data: 1
+        type: dword
+      become: true
+
+    # ============================================
+    # NETWORK OPTIMIZATIONS
+    # ============================================
+
+    - name: Enable DNS over HTTPS (DoH) Preference
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters
+        name: DoH
+        data: 2
+        type: dword
+      become: true
+
+    - name: Configuration complete
+      ansible.windows.win_shell:
+        cmd: Write-Output "Is done"

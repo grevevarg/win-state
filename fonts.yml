@@ -1,0 +1,133 @@
+---
+- name: Install programming fonts
+  hosts: localhost
+  connection: winrm
+  gather_facts: false
+  vars:
+    ansible_host: "127.0.0.1"
+    ansible_port: 5985
+    ansible_winrm_transport: ntlm
+    ansible_winrm_server_cert_validation: ignore
+    ansible_become_method: runas
+    ansible_become_user: "{{ ansible_user }}"
+    ansible_become_password: "{{ ansible_password }}"
+    font_workdir: 'C:\Windows\Temp\WinState\Fonts'
+    fonts_dir: 'C:\Windows\Fonts'
+  tasks:
+
+    - name: Create font working directory
+      ansible.windows.win_file:
+        path: "{{ font_workdir }}"
+        state: directory
+
+    # ============================================
+    # DOWNLOAD AND EXTRACT
+    # ============================================
+
+    - name: Download Fira Code
+      ansible.windows.win_get_url:
+        url: "https://github.com/tonsky/FiraCode/releases/download/6.2/Fira_Code_v6.2.zip"
+        dest: "{{ font_workdir }}\\FiraCode.zip"
+
+    - name: Extract Fira Code
+      community.windows.win_unzip:
+        src: "{{ font_workdir }}\\FiraCode.zip"
+        dest: "{{ font_workdir }}\\FiraCode"
+
+    - name: Download Cascadia Code
+      ansible.windows.win_get_url:
+        url: "https://github.com/microsoft/cascadia-code/releases/download/v2407.24/CascadiaCode-2407.24.zip"
+        dest: "{{ font_workdir }}\\CascadiaCode.zip"
+
+    - name: Extract Cascadia Code
+      community.windows.win_unzip:
+        src: "{{ font_workdir }}\\CascadiaCode.zip"
+        dest: "{{ font_workdir }}\\CascadiaCode"
+
+    - name: Download JetBrainsMono Nerd Font
+      ansible.windows.win_get_url:
+        url: "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.1/JetBrainsMono.zip"
+        dest: "{{ font_workdir }}\\JetBrainsMono.zip"
+
+    - name: Extract JetBrainsMono Nerd Font
+      community.windows.win_unzip:
+        src: "{{ font_workdir }}\\JetBrainsMono.zip"
+        dest: "{{ font_workdir }}\\JetBrainsMono"
+
+    - name: Download Hack Nerd Font
+      ansible.windows.win_get_url:
+        url: "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.1/Hack.zip"
+        dest: "{{ font_workdir }}\\Hack.zip"
+
+    - name: Extract Hack Nerd Font
+      community.windows.win_unzip:
+        src: "{{ font_workdir }}\\Hack.zip"
+        dest: "{{ font_workdir }}\\Hack"
+
+    # ============================================
+    # LOCATE TTF FILES (some zips nest them in ttf/)
+    # ============================================
+
+    - name: Find Fira Code font files
+      ansible.windows.win_find:
+        paths: "{{ font_workdir }}\\FiraCode"
+        patterns: "*.ttf"
+        recurse: true
+      register: firacode_fonts
+
+    - name: Find Cascadia Code font files
+      ansible.windows.win_find:
+        paths: "{{ font_workdir }}\\CascadiaCode"
+        patterns: "*.ttf"
+        recurse: true
+      register: cascadia_fonts
+
+    - name: Find JetBrainsMono font files
+      ansible.windows.win_find:
+        paths: "{{ font_workdir }}\\JetBrainsMono"
+        patterns: "*.ttf"
+        recurse: true
+      register: jetbrains_fonts
+
+    - name: Find Hack font files
+      ansible.windows.win_find:
+        paths: "{{ font_workdir }}\\Hack"
+        patterns: "*.ttf"
+        recurse: true
+      register: hack_fonts
+
+    # ============================================
+    # INSTALL (requires admin to write C:\Windows\Fonts)
+    # ============================================
+
+    - name: Install Fira Code fonts
+      ansible.windows.win_copy:
+        src: "{{ item.path }}"
+        dest: "{{ fonts_dir }}"
+        remote_src: true
+      loop: "{{ firacode_fonts.files }}"
+      become: true
+
+    - name: Install Cascadia Code fonts
+      ansible.windows.win_copy:
+        src: "{{ item.path }}"
+        dest: "{{ fonts_dir }}"
+        remote_src: true
+      loop: "{{ cascadia_fonts.files }}"
+      become: true
+
+    - name: Install JetBrainsMono fonts
+      ansible.windows.win_copy:
+        src: "{{ item.path }}"
+        dest: "{{ fonts_dir }}"
+        remote_src: true
+      loop: "{{ jetbrains_fonts.files }}"
+      become: true
+
+    - name: Install Hack fonts
+      ansible.windows.win_copy:
+        src: "{{ item.path }}"
+        dest: "{{ fonts_dir }}"
+        remote_src: true
+      loop: "{{ hack_fonts.files }}"
+      become: true

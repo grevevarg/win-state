@@ -1,0 +1,41 @@
+---
+- name: Configure Starship prompt for PowerShell
+  hosts: localhost
+  connection: winrm
+  gather_facts: false
+  vars:
+    ansible_host: "127.0.0.1"
+    ansible_port: 5985
+    ansible_winrm_transport: ntlm
+    ansible_winrm_server_cert_validation: ignore
+    ansible_become_method: runas
+    ansible_become_user: "{{ ansible_user }}"
+    ansible_become_password: "{{ ansible_password }}"
+    profile_dir: 'C:\Users\{{ ansible_user }}\Documents\PowerShell'
+    starship_config: 'C:\Users\{{ ansible_user }}\Documents\PowerShell\starship.toml'
+    profile_ps1: 'C:\Users\{{ ansible_user }}\Documents\PowerShell\profile.ps1'
+  tasks:
+
+    - name: Ensure PowerShell profile directory exists
+      ansible.windows.win_file:
+        path: "{{ profile_dir }}"
+        state: directory
+
+    - name: Copy Starship config to PowerShell profile folder
+      ansible.windows.win_copy:
+        src: "{{ playbook_dir }}/starship.toml"
+        dest: "{{ starship_config }}"
+
+    - name: Point STARSHIP_CONFIG at the profile config
+      community.windows.win_lineinfile:
+        path: "{{ profile_ps1 }}"
+        line: '$ENV:STARSHIP_CONFIG = "{{ starship_config }}"'
+        create: true
+        state: present
+
+    - name: Enable Starship in the PowerShell profile
+      community.windows.win_lineinfile:
+        path: "{{ profile_ps1 }}"
+        line: "Invoke-Expression (&starship init powershell)"
+        create: true
+        state: present

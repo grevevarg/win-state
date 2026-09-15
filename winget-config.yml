@@ -1,0 +1,162 @@
+# WinGet Configuration File for Cloud Engineering Course Setup
+# Windows 11 School Laptop Configuration
+# Includes: Development tools, Cloud/Container platforms, and Development environment
+
+properties:
+  configVersion: 0.3
+  assertions:
+    - assertionName: isWindows11
+      assertionModule: Microsoft.Windows.Developer/Assertions/OSVersion
+      value: "11"
+  resources:
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: WSL
+      directives:
+        description: Windows Subsystem for Linux 2
+      settings:
+        id: Microsoft.WSL
+        source: winget
+    
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: PowerToys
+      directives:
+        description: Microsoft PowerToys utilities suite
+      settings:
+        id: Microsoft.PowerToys
+        source: winget
+    
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: PowerShell7
+      directives:
+        description: PowerShell 7 (Latest)
+      settings:
+        id: Microsoft.PowerShell
+        source: winget
+    
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Docker
+      directives:
+        description: Docker Desktop container platform
+      settings:
+        id: Docker.DockerDesktop
+        source: winget
+    
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: NeoVim
+      directives:
+        description: NeoVim text editor
+      settings:
+        id: Neovim.Neovim
+        source: winget
+    
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: kubectl
+      directives:
+        description: Kubernetes command-line tool
+      settings:
+        id: Kubernetes.kubectl
+        source: winget
+    
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Terraform
+      directives:
+        description: Terraform Infrastructure as Code tool
+      settings:
+        id: HashiCorp.Terraform
+        source: winget
+    
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: AWSCLI
+      directives:
+        description: AWS Command Line Interface
+      settings:
+        id: Amazon.AWSCLI
+        source: winget
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: AzureCLI
+      directives:
+        description: Microsoft Azure Command Line Interface
+      settings:
+        id: Microsoft.AzureCLI
+        source: winget
+    
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Helm
+      directives:
+        description: Helm Kubernetes package manager
+      settings:
+        id: Helm.Helm
+        source: winget
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: VMwareWorkstationPro
+      directives:
+        description: VMware Workstation Pro desktop virtualization
+      settings:
+        id: VMware.WorkstationPro
+        source: winget
+    
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Git
+      directives:
+        description: Git version control system
+      settings:
+        id: Git.Git
+        source: winget
+    
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: NodeJS
+      directives:
+        description: Node.js JavaScript runtime
+      settings:
+        id: OpenJS.NodeJS
+        source: winget
+    
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Python
+      directives:
+        description: Python programming language
+      settings:
+        id: Python.Python.3.12
+        source: winget
+    
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: uv
+      directives:
+        description: Ultra-fast Python package and project manager
+      settings:
+        id: astral-sh.uv
+        source: winget
+    
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Starship
+      directives:
+        description: Starship cross-shell prompt
+      settings:
+        id: Starship.Starship
+        source: winget
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Chocolatey
+      directives:
+        description: Chocolatey package manager
+      settings:
+        id: Chocolatey.Chocolatey
+        source: winget
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Syncthing
+      directives:
+        description: Syncthing peer-to-peer file synchronization
+      settings:
+        id: Syncthing.Syncthing
+        source: winget
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Obsidian
+      directives:
+        description: Obsidian knowledge base
+      settings:
+        id: Obsidian.Obsidian
+        source: winget

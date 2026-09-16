@@ -1,0 +1,105 @@
+---
+- name: Course lab tools (VMware Workstation and course assets)
+  hosts: localhost
+  connection: winrm
+  gather_facts: false
+  vars:
+    ansible_host: "127.0.0.1"
+    ansible_port: 5985
+    ansible_winrm_transport: ntlm
+    ansible_winrm_server_cert_validation: ignore
+    ansible_winrm_operation_timeout_sec: 300
+    ansible_winrm_read_timeout_sec: 3600
+    ansible_become_method: runas
+    ansible_become_user: "{{ ansible_user }}"
+    ansible_become_password: "{{ ansible_password }}"
+    workdir: 'C:\Windows\Temp\WinState'
+    course_dir: 'C:\VMs\yh2026'
+    gns3_dir: 'C:\VMs\yh2026\GNS3VM'
+    vmware_installer_url: 'https://files.cloudinfra.se/yh2026/vmware/VMware-Workstation-Full-26H1-25388281.exe'
+    vmware_installer: '{{ workdir }}\VMware-Workstation-Full-26H1-25388281.exe'
+    vmware_exe: 'C:\Program Files (x86)\VMware\VMware Workstation\vmware.exe'
+    win10_iso_url: 'https://files.cloudinfra.se/yh2026/iso/sv-se_windows_10_business_editions_version_22h2_updated_oct_2025_x64_dvd_32f74fd0.iso'
+    win10_iso: '{{ course_dir }}\sv-se_windows_10_business_editions_version_22h2_updated_oct_2025_x64_dvd_32f74fd0.iso'
+    gns3_vm_url: 'https://files.cloudinfra.se/yh2026/gns3/GNS3.VM.VMware.Workstation.2.2.61.zip'
+    gns3_vm_zip: '{{ course_dir }}\GNS3.VM.VMware.Workstation.2.2.61.zip'
+  tasks:
+
+    - name: Create working directory
+      ansible.windows.win_file:
+        path: "{{ workdir }}"
+        state: directory
+
+    - name: Create course assets directory
+      ansible.windows.win_file:
+        path: "{{ course_dir }}"
+        state: directory
+      become: true
+
+    # ============================================
+    # VMWARE WORKSTATION 26H1 (course mirror)
+    # ============================================
+
+    - name: Check if VMware Workstation installer is already downloaded
+      ansible.windows.win_stat:
+        path: "{{ vmware_installer }}"
+      register: vmware_installer_stat
+
+    - name: Download VMware Workstation 26H1 installer
+      ansible.windows.win_get_url:
+        url: "{{ vmware_installer_url }}"
+        dest: "{{ vmware_installer }}"
+      when: not (vmware_installer_stat.stat.exists | default(false))
+
+    - name: Install VMware Workstation silently
+      ansible.windows.win_command:
+        argv:
+          - "{{ vmware_installer }}"
+          - /s
+          - '/v"/qn EULAS_AGREED=1 REBOOT=ReallySuppress AUTOSOFTWAREUPDATE=0"'
+        creates: "{{ vmware_exe }}"
+      become: true
+      register: vmware_install
+      failed_when: vmware_install.rc not in [0, 3010, 1641]
+
+    # ============================================
+    # COURSE ASSETS (skip if already present)
+    # ============================================
+
+    - name: Check if Windows 10 ISO is already downloaded
+      ansible.windows.win_stat:
+        path: "{{ win10_iso }}"
+      register: win10_iso_stat
+
+    - name: Download Windows 10 Business ISO
+      ansible.windows.win_get_url:
+        url: "{{ win10_iso_url }}"
+        dest: "{{ win10_iso }}"
+      when: not (win10_iso_stat.stat.exists | default(false))
+
+    - name: Check if GNS3 VM archive is already downloaded
+      ansible.windows.win_stat:
+        path: "{{ gns3_vm_zip }}"
+      register: gns3_vm_zip_stat
+
+    - name: Download GNS3 VM for VMware Workstation
+      ansible.windows.win_get_url:
+        url: "{{ gns3_vm_url }}"
+        dest: "{{ gns3_vm_zip }}"
+      when: not (gns3_vm_zip_stat.stat.exists | default(false))
+
+    - name: Check if GNS3 VM is already extracted
+      ansible.windows.win_stat:
+        path: '{{ gns3_dir }}\GNS3 VM.ovf'
+      register: gns3_ovf_stat
+
+    - name: Extract GNS3 VM appliance
+      community.windows.win_unzip:
+        src: "{{ gns3_vm_zip }}"
+        dest: "{{ gns3_dir }}"
+      when: not (gns3_ovf_stat.stat.exists | default(false))
+
+    - name: Course lab setup complete
+      ansible.windows.win_shell:
+        cmd: Write-Output "VMware installed and course assets staged in {{ course_dir }}"
+      changed_when: false

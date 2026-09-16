@@ -1,13 +1,13 @@
 # WinGet Configuration File for Cloud Engineering Course Setup
-# Windows 11 School Laptop Configuration
+# Windows 10 School Laptop Configuration
 # Includes: Development tools, Cloud/Container platforms, and Development environment
 
 properties:
   configVersion: 0.3
   assertions:
-    - assertionName: isWindows11
+    - assertionName: isWindows10
       assertionModule: Microsoft.Windows.Developer/Assertions/OSVersion
-      value: "11"
+      value: "10"
   resources:
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: WSL
@@ -89,14 +89,6 @@ properties:
         id: Helm.Helm
         source: winget
 
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: VMwareWorkstationPro
-      directives:
-        description: VMware Workstation Pro desktop virtualization
-      settings:
-        id: VMware.WorkstationPro
-        source: winget
-    
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: Git
       directives:
